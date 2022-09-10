@@ -159,57 +159,13 @@
           .on("mouseleave", mouseleave)
   
   })
-
-  // Annotations
-  const annotationsLeft = [
-  {
-    note: {
-      label: "The death rate is 0.01286",
-      title: "Death rate 1"
-    },
-
-    color: ["red"],
-    x: 250,
-    y: 420,
-    dy: 70,
-    dx: 100
-    }
-  ]
-
-  const makeAnnotationsLeft = d3.annotation()
-    .annotations(annotationsLeft)
-  d3.select("svg")
-    .append("g")
-    .call(makeAnnotationsLeft)
-  
-
-  const annotationsRight = [
-  {
-    note: {
-      label: "The death rate is 0.002762",
-      title: "Death rate 2"
-    },
-
-    color: ["blue"],
-    x: 630,
-    y: 150,
-    dy: 70,
-    dx: 100
-    }
-  ]
-
-  const makeAnnotationsRight = d3.annotation()
-    .annotations(annotationsRight)
-  d3.select("svg")
-    .append("g")
-    .call(makeAnnotationsRight)
   
 </script>
 
 <p>
-  <br>
-  Trough this chart, we can see the line plotted for the comfirmed cases over the deaths.<br>
-  We can move the mouse over each point on the chart to see the details in order to calculate the rate.
+  <h4>
+  This chart shows the gradiant values between comfirmed cases and deaths.</h4>
+  Moving the mouse: See death rate in detail.
 </p>
 
 </body>
