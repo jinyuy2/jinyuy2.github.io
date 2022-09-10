@@ -7,7 +7,7 @@
 <body>
 <h1>Jinyu Yang's Narrative Visualization for Coronavirus Data in the United States</h1>
 
-<p>Page 2: cases over deaths</p>
+<h2>Page 2: Death Rate: Cases over Deaths</h2>
 
 <form>
   <button formaction="../">Main Page</button>
@@ -123,7 +123,7 @@
       }
       var mousemove = function(d) {
         Tooltip
-          .html("Cases: " + d.cases + ", Deaths: " + d.deaths + ", Date: " + d3.timeFormat("%B %d, %Y")(d.date))
+          .html("Rate(%): " + (d.deaths*100/d.cases).toFixed(3) + "%, Cases: " + d.cases + ", Deaths: " + d.deaths + ", Date: " + d3.timeFormat("%B %d, %Y")(d.date))
           .style("left", (d3.mouse(this)[0]+100) + "px")
           .style("top", (d3.mouse(this)[1]) + "px")
 
@@ -164,7 +164,7 @@
 
 <p>
   <h4>
-  This chart shows the gradiant values between comfirmed cases and deaths.</h4>
+  This chart shows the Case fatality ratio (CFR) from comfirmed cases and deaths.</h4>
   Moving the mouse: See death rate in detail.
 </p>
 
