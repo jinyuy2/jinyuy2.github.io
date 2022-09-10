@@ -8,7 +8,7 @@
 <h1>Jinyu Yang's Narrative Visualization for Coronavirus Data in the United States</h1>
 
 <h2> 
-  General Cases & Deaths
+  Charts for Cases & Deaths
 </h2>
 
 <form>
@@ -19,7 +19,7 @@
   <button formaction="state2.html"> 4 </button>
 </form>
 
-<h3>Cases & Deaths - Time</h3>
+<p>Cases & deaths - Time</p>
 
 <script src="https://d3js.org/d3.v4.js"></script>
 
@@ -56,7 +56,7 @@
 
     function(data) {
 
-      var seletionGroup = ["Cases", "Deaths"]
+      var seletionGroup = ["cases", "deaths"]
 
       d3.select("#selectButton")
         .selectAll('myOptions')
@@ -143,8 +143,7 @@
 <p>
   <h4>
   This chart shows the change of confirmed cases and deaths overtime.</h4>
-  Although there is a significant amount of people infected by COVID-19, 
-  the death rate is still steady and not so high.
+  Although there is a significant amount of people infected by COVID-19, the death cases are relatively at a low level.
 </p>
 
 <p>
