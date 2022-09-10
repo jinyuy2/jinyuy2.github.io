@@ -30,3 +30,9 @@ a {
 #root > * + * {
     margin-top: 1rem;
 }
+svg {
+  background: #BCEDA0;
+  border: 1px solid yellow;
+  border-radius: 3px;
+  box-shadow: 2px 2px 5px gray
+}
