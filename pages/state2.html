@@ -7,20 +7,19 @@
 <body>
 <h1>Jinyu Yang's Narrative Visualization for Coronavirus Data in Each State</h1>
 
-<h2>Deaths for each state</h2>
+<h2>COVID-19 Deaths Over Time by State</h2>
 
 <form>
-  <button formaction="../">Main Page</button>
-  <button formaction="case_death1.html"> 1 </button>
-  <button formaction="case_death2.html"> 2 </button>
-  <button formaction="state1.html"> 3 </button>
-  <button formaction="state2.html"> 4 </button>
+  <button formaction="../">Home</button>
+  <button formaction="case_death1.html">National Overview</button>
+  <button formaction="case_death2.html">State Overview</button>
+  <button formaction="state1.html">Cases by Time</button>
+  <button formaction="state2.html">Deaths by Time</button>
 </form>
 
 <h3>Deaths - Time</h3>
 
 <script src="https://d3js.org/d3.v4.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js" integrity="sha512-iBAeBWWWFb8HqSBcrqcz98iIpuVH1la39dEYHtyQ/pGpeCQTQVvLJOWAuhv2Q7JSHp9k7hWA7sGxU3hHJe+tFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <div id="state2"></div>
@@ -29,11 +28,18 @@
 
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 
-<!----------------------------------------------------------------->
+<style>
+  .tooltip {
+    position: absolute;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid black;
+    pointer-events: none;
+  }
+</style>
 
 <script>
-
-  // Set the dimensions
   var margin = {top: 30, right: 30, bottom: 30, left: 60},
       width = 900 - margin.left - margin.right,
       height = 600 - margin.top - margin.bottom;
@@ -46,29 +52,21 @@
       .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
-  var data1 = d3.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv",
-
+  d3.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv",
     function(d){
-      return { date : d3.timeParse("%Y-%m-%d")(d.date), value : d.deaths, state : d.state }
+      return { date : d3.timeParse("%Y-%m-%d")(d.date), value : +d.deaths, state : d.state }
     },
-
     function(data) {
-
-      var seletionGroup = d3.map(data, function(d){return(d.state)}).keys()
+      var selectionGroup = d3.map(data, function(d){return(d.state)}).keys()
 
       d3.select("#selectButton")
         .selectAll('myOptions')
-        .data(seletionGroup)
+        .data(selectionGroup)
         .enter()
         .append('option')
         .text(function (d) { return d; }) 
-        .attr("value", function (d) { return d; }) 
+        .attr("value", function (d) { return d; });
 
-      var myColor = d3.scaleOrdinal()
-        .domain(seletionGroup)
-        .range(d3.schemeSet2);
-  
-      // Add X axis
       var x = d3.scaleTime()
         .domain(d3.extent(data, function(d) { return d.date; }))
         .range([ 0, width ]);
@@ -76,71 +74,63 @@
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
-      // Add Lable for X axis
-      svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "end")
-        .attr("x", width)
-        .attr("y", height - 6)
-        .text("Time");        
-
-      // Add Y axis
       var y = d3.scaleLinear()
-        .domain([0, d3.max(data, function(d) { return + d.value; })])
+        .domain([0, d3.max(data, function(d) { return +d.value; })])
         .range([ height, 0 ]);
       svg.append("g")
         .call(d3.axisLeft(y));
 
-      // Add Lable for Y axis
-      svg.append("text")
-        .attr("class", "y label")
-        .attr("text-anchor", "end")
-        .attr("y", 6)
-        .attr("dy", ".75em")
-        .attr("transform", "rotate(-90)")
-        .text("Confirmed deaths");
+      var Tooltip = d3.select("#state2")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip");
 
-      // Add the line
-      var line = svg
-        .append('g')
-        .append("path")
-        .datum(data.filter(function(d){return d.state==seletionGroup[0]}))
+      svg.append("rect")
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mouseover", function() { Tooltip.style("opacity", 1); })
+        .on("mousemove", function() {
+          var coords = d3.mouse(this);
+          var x0 = x.invert(coords[0]);
+          var bisectDate = d3.bisector(function(d) { return d.date; }).left;
+          var i = bisectDate(data, x0, 1);
+          var d0 = data[i - 1];
+          var d1 = data[i];
+          var d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+          Tooltip
+            .html("Date: " + d3.timeFormat("%B %d, %Y")(d.date))
+            .style("left", (coords[0] + 380) + "px")  
+            .style("top", (coords[1] + 220) + "px"); 
+        })
+        .on("mouseout", function() { Tooltip.style("opacity", 0); });
+
+      var line = svg.append("path")
+        .datum(data.filter(function(d){return d.state==selectionGroup[0]}))
         .attr("fill", "none")
-        .attr("stroke", function(d){ return myColor("valueA") })
-        .attr("stroke-width", 5)
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 2)
         .attr("d", d3.line()
           .x(function(d) { return x(d.date) })
-          .y(function(d) { return y(d.value) })
-          )
-
-      // Update function
-      function update(selectedOption) {
-
-      var newData = data.filter(function(d){return d.state==selectedOption})
-
-      line
-          .datum(newData)
-          .transition()
-          .duration(1000)
-          .attr("d", d3.line()
-            .x(function(d) { return x(+d.date) })
-            .y(function(d) { return y(+d.value) })
-          )
-          .attr("stroke", function(d){ return myColor(selectedOption) })
-      }
+          .y(function(d) { return y(d.value) }));
 
       d3.select("#selectButton").on("change", function(d) {
-        var newOption = d3.select(this).property("value")
-        update(newOption)
-      })
-  
-})
-  
+        var selectedOption = d3.select(this).property("value");
+        var newData = data.filter(function(d){return d.state==selectedOption});
+        line.datum(newData)
+            .transition()
+            .duration(1000)
+            .attr("d", d3.line()
+              .x(function(d) { return x(d.date) })
+              .y(function(d) { return y(d.value) }));
+      });
+    }
+  );
 </script>
 
 <p>
-  <h4>
-  This chart shows the change of confirmed deaths in each state overtime.</h4>
+  <h4>This chart shows the change of confirmed deaths in each state over time.</h4>
   Select the option box: See the chart for each state.
 </p>
 

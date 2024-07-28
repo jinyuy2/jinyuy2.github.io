@@ -12,14 +12,14 @@
 </h2>
 
 <form>
-  <button formaction="../">Main Page</button>
-  <button formaction="case_death1.html"> 1 </button>
-  <button formaction="case_death2.html"> 2 </button>
-  <button formaction="state1.html"> 3 </button>
-  <button formaction="state2.html"> 4 </button>
+  <button formaction="../">Home</button>
+  <button formaction="case_death1.html">National Overview</button>
+  <button formaction="case_death2.html">State Overview</button>
+  <button formaction="state1.html">Cases by Time</button>
+  <button formaction="state2.html">Deaths by Time</button>
 </form>
 
-<p>Cases & deaths - Time</p>
+<h3>COVID-19 Cases and Deaths Over Time</h3>
 
 <script src="https://d3js.org/d3.v4.js"></script>
 
@@ -30,6 +30,17 @@
 <select id="selectButton"></select>
 
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+<style>
+  .tooltip {
+    position: absolute;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid black;
+    pointer-events: none;
+  }
+</style>
 
 <!----------------------------------------------------------------->
 
@@ -78,7 +89,7 @@
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
-      // Add Lable for X axis
+      // Add Label for X axis
       svg.append("text")
         .attr("class", "x label")
         .attr("text-anchor", "end")
@@ -93,7 +104,7 @@
       svg.append("g")
         .call(d3.axisLeft(y));
 
-      // Add Lable for Y axis
+      // Add Label for Y axis
       svg.append("text")
         .attr("class", "y label")
         .attr("text-anchor", "end")
@@ -115,28 +126,76 @@
           .y(function(d) { return y(d.cases) })
           )
 
+      // Add a tooltip
+      var Tooltip = d3.select("#case_death1")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+
+      var bisectDate = d3.bisector(function(d) { return d.date; }).left;
+
+      var focus = svg.append("g")
+        .append("circle")
+          .style("fill", "none")
+          .attr("stroke", "black")
+          .attr("r", 8.5)
+          .style("opacity", 0);
+
+      var mouseover = function() {
+        Tooltip.style("opacity", 1);
+        focus.style("opacity", 1);
+      }
+
+      var mousemove = function() {
+        var x0 = x.invert(d3.mouse(this)[0]);
+        var i = bisectDate(data, x0, 1);
+        var d0 = data[i - 1];
+        var d1 = data[i];
+        var d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+        focus
+          .attr("cx", x(d.date))
+          .attr("cy", y(d.cases));
+        Tooltip.html("Date: " + d3.timeFormat("%B %d, %Y")(d.date) + "<br>Cases: " + d.cases + "<br>Deaths: " + d.deaths)
+          .style("left", (d3.event.pageX + 15) + "px")
+          .style("top", (d3.event.pageY - 28) + "px");
+      }
+
+      var mouseout = function() {
+        Tooltip.style("opacity", 0);
+        focus.style("opacity", 0);
+      }
+
+      svg.append("rect")
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseout", mouseout);
+
       // Update function
       function update(selectedOption) {
 
-      var newData = data.map(function(d){return {date: d.date, value:d[selectedOption]} })
+        var newData = data.map(function(d){return {date: d.date, value:d[selectedOption]} })
 
-      line
+        line
           .datum(newData)
           .transition()
           .duration(1000)
           .attr("d", d3.line()
-            .x(function(d) { return x(+d.date) })
-            .y(function(d) { return y(+d.value) })
+            .x(function(d) { return x(d.date) })
+            .y(function(d) { return y(d.value) })
           )
           .attr("stroke", function(d){ return myColor(selectedOption) })
       }
 
       d3.select("#selectButton").on("change", function(d) {
-        var newOption = d3.select(this).property("value")
-        update(newOption)
+        var newOption = d3.select(this).property("value");
+        update(newOption);
       })
       
-})
+    })
   
 </script>
 

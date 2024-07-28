@@ -10,14 +10,14 @@
 <h2>Death Rate: Cases over Deaths</h2>
 
 <form>
-  <button formaction="../">Main Page</button>
-  <button formaction="case_death1.html"> 1 </button>
-  <button formaction="case_death2.html"> 2 </button>
-  <button formaction="state1.html"> 3 </button>
-  <button formaction="state2.html"> 4 </button>
+  <button formaction="../">Home</button>
+  <button formaction="case_death1.html">National Overview</button>
+  <button formaction="case_death2.html">State Overview</button>
+  <button formaction="state1.html">Cases by Time</button>
+  <button formaction="state2.html">Deaths by Time</button>
 </form>
 
-<h3>Ratio & Cases - Deaths</h3>
+<h3>COVID-19 Case Fatality Rate</h3>
 
 <script src="https://d3js.org/d3.v4.js"></script>
 
@@ -28,6 +28,14 @@
 <style>
   .myCircle:hover {
     stroke: red;
+  }
+  .tooltip {
+    position: absolute;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid black;
+    pointer-events: none;
   }
 </style>
 
@@ -64,7 +72,7 @@
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
-      // Add Lable for X axis
+      // Add Label for X axis
       svg.append("text")
         .attr("class", "x label")
         .attr("text-anchor", "end")
@@ -79,7 +87,7 @@
       svg.append("g")
         .call(d3.axisLeft(y));
 
-      // Add Lable for Y axis
+      // Add Label for Y axis
       svg.append("text")
         .attr("class", "y label")
         .attr("text-anchor", "end")
@@ -99,7 +107,7 @@
             .style("opacity", 0)
         
       // Add the line
-      svg.append("path")
+      var line = svg.append("path")
         .datum(data)
         .attr("fill", "none")
         .attr("stroke", "steelblue")
@@ -107,64 +115,54 @@
         .attr("d", d3.line()
           .x(function(d) { return x(d.cases) })
           .y(function(d) { return y(d.deaths) })
-          )
+        );
 
       // Add a tooltip
       var Tooltip = d3.select("#case_death2")
         .append("div")
         .style("opacity", 0)
-        .attr("class", "tooltip")
-        .style("border", "solid")
-        .style("border-width", "2px")
+        .attr("class", "tooltip");
 
-      var mouseover = function(d) {
-        Tooltip.style("opacity", 1)
-        focus.style("opacity", 1)
+      var mouseover = function() {
+        Tooltip.style("opacity", 1);
+        focus.style("opacity", 1);
       }
-      var mousemove = function(d) {
-        Tooltip
-          .html("Rate(%): " + (d.deaths*100/d.cases).toFixed(3) + "%, Cases: " + d.cases + ", Deaths: " + d.deaths + ", Date: " + d3.timeFormat("%B %d, %Y")(d.date))
-          .style("left", (d3.mouse(this)[0]+100) + "px")
-          .style("top", (d3.mouse(this)[1]) + "px")
 
+      var mousemove = function() {
         var x0 = x.invert(d3.mouse(this)[0]);
         var i = bisect(data, x0, 1);
-        selectedData = data[i]
+        var d0 = data[i - 1];
+        var d1 = data[i];
+        var d = x0 - d0.cases > d1.cases - x0 ? d1 : d0;
         focus
-          .attr("cx", x(selectedData.cases))
-          .attr("cy", y(selectedData.deaths))
-          
-      }
-      var mouseleave = function(d) {
-        Tooltip.style("opacity", 0)
-        focus.style("opacity", 0)
+          .attr("cx", x(d.cases))
+          .attr("cy", y(d.deaths));
+        Tooltip.html("Rate(%): " + (d.deaths * 100 / d.cases).toFixed(3) + "%, Cases: " + d.cases + ", Deaths: " + d.deaths + ", Date: " + d3.timeFormat("%B %d, %Y")(d.date))
+          .style("left", (d3.event.pageX + 15) + "px")
+          .style("top", (d3.event.pageY - 28) + "px");
       }
 
-      // Add the points
-      svg
-        .append("g")
-        .selectAll("dot")
-        .data(data)
-        .enter()
-        .append("circle")
-          .attr("class", "myCircle")
-          .attr("cx", function(d) { return x(d.cases) } )
-          .attr("cy", function(d) { return y(d.deaths) } )
-          .attr("r", 1)
-          .attr("stroke", "#69b3a2")
-          .attr("stroke-width", 3)
-          .attr("fill", "white")
-          .on("mouseover", mouseover)
-          .on("mousemove", mousemove)
-          .on("mouseleave", mouseleave)
-  
+      var mouseout = function() {
+        Tooltip.style("opacity", 0);
+        focus.style("opacity", 0);
+      }
+
+      svg.append("rect")
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseout", mouseout);
+
   })
   
 </script>
 
 <p>
   <h4>
-  This chart shows the Case Fatality Ratio (CFR) from comfirmed cases and deaths.</h4>
+  This chart shows the Case Fatality Ratio (CFR) from confirmed cases and deaths.</h4>
   Moving the mouse: See death rate in detail.
 </p>
 
